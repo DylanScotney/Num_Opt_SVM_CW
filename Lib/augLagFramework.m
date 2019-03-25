@@ -35,6 +35,7 @@ while(~stopCond)
     %======================================================================
     L_k.f = @(a) -L.f(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
     L_k.df = @(a) -L.df(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
+    L_k.d2f = @(a) -L.d2f(a, mu_e_k, mu_I_k, lambda_I_k);
     %======================================================================
     
     % Store Params
@@ -56,8 +57,11 @@ while(~stopCond)
     btlsFun = @(a_k, p_k, alpha0) backtracking(L_k, a_k, p_k,...
                                                alpha0, btlsOpts);   
     nIter
-    [a_k, ~, ~, ~] = nonlinearConjugateGradient(L_k, btlsFun, 'FR',...
-                                                alpha0, a_k, 1e-7, 5*maxIter);
+    %[a_k, ~, ~, ~] = nonlinearConjugateGradient(L_k, btlsFun, 'FR',...
+     %                                           alpha0, a_k, 1e-7, 5*maxIter);
+     
+    [a_k, ~, ~, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
+                                       a_k, 1e-7, 5*maxIter);                                       
    
     
     %======================================================================
