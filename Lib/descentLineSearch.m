@@ -7,12 +7,9 @@ function [xMin, fMin, nIter, info] = descentLineSearch(F, descent, ls, alpha0, x
 %   - f: function handler
 %   - df: gradient handler
 %   - d2f: Hessian handler
-% descent: specifies descent direction {'steepest', 'newton'}
-% ls: function handle for computing the step length
+% descent: specifies descent direction {'steepest', 'newton', 'bfgs'}
+% ls: specifies line search algorithm
 % alpha0: initial step length 
-% rho: in (0,1) backtraking step length reduction factor
-% c1: constant in sufficient decrease condition f(x_k + alpha_k*p_k) > f_k + c1*alpha_k*(df_k')*p_k)
-%     Typically chosen small, (default 1e-4). 
 % x0: initial iterate
 % tol: stopping condition on minimal allowed step
 %      norm(x_k - x_k_1)/norm(x_k) < tol;
@@ -29,49 +26,108 @@ function [xMin, fMin, nIter, info] = descentLineSearch(F, descent, ls, alpha0, x
 
 % Parameters
 % Stopping condition {'step', 'grad'}
-stopType = 'step';
+stopType = 'grad';
+
+% Extract inverse Hessian approximation handler
+extractH = 1;
 
 % Initialization
 nIter = 0;
 x_k = x0;
-info.xs(nIter+1, :) = x0;
-info.alphas(nIter+1) = alpha0;
+info.xs = x0;
+info.alphas = alpha0;
 stopCond = false; 
+
+switch lower(descent)
+  case 'bfgs'
+    H_k = @(y) y;
+    % Store H matrix in columns
+    info.H = H_k(eye(2));
+    info.H
+end
+        
 
 % Loop until convergence or maximum number of iterations
 while (~stopCond && nIter <= maxIter)
     
-    % ====================== YOUR CODE HERE ===============================
-    % Instructions: 
-    % x_k contains the current iteration point - used in the stopping condition
-    % x_k_1 contains the previous iteration point - used in the stopping condition
-    
-    % Steepest descent
-    if descent == "steepest"      
-        p_k = - F.df(x_k)/norm(F.df(x_k)); % Steepest descent at iteration k
+  % Increment iterations
+    nIter = nIter + 1;
+
+    % Compute descent direction
+    switch lower(descent)
+      case 'steepest'
+        p_k = -F.df(x_k); % steepest descent direction
+      case 'newton'
+        p_k = -F.d2f(x_k)\F.df(x_k); % Newton direction
+        if p_k'*F.df(x_k) > 0 % force to be descent direction (only active if F.d2f(x_k) not pos.def.)
+          p_k = -p_k;
+        end
+      case 'bfgs'
+        %======================== YOUR CODE HERE ==========================================
+        p_k = -H_k(F.df(x_k)); % Compute search direction
+
+        %==================================================================================
+
     end
     
-    % Netwon's algorithm
-    if descent == "newton"
-        p_k = - F.d2f(x_k)\(F.df(x_k));
+    % Call line search given by handle ls for computing step length
+    alpha_k = ls(x_k, p_k, alpha0);
+    
+    % Update x_k and f_k
+    x_k_1 = x_k;
+    x_k = x_k + alpha_k*p_k;
+    
+    switch lower(descent)
+      case 'bfgs'
+          
+        %======================== YOUR CODE HERE ==========================================
+        s_k = x_k - x_k_1;
+        y_k = F.df(x_k) - F.df(x_k_1);
+        rho_k = 1/(y_k' * s_k);
+
+
+        %==================================================================================s
+        
+        if nIter == 1
+          % Update initial guess H_0. Note that initial p_0 = -F.df(x_0) and x_1 = x_0 + alpha * p_0.
+          disp(['Rescaling H0 with ' num2str((s_k'*y_k)/(y_k'*y_k)) ])
+          
+          H_k = @(x)(s_k'*y_k)/(y_k'*y_k)*x;
+          
+        end
+        
+        %======================== YOUR CODE HERE ==========================================
+
+        % update H_(k+1) = (I - rho*s*y')*H_(k)*(I-rho*y*s') - rho*s*s' 
+        % without O(n^3) flops by not explicitly calculating matrix 
+
+        LHS = eye(length(a_k)) - rho_k*s_k*y_k';
+        RHS = eye(length(a_k)) - rho_k*y_k*s_k';          
+        LHS_update = @(x) LHS*(x);
+        
+        H_k = @(x) (LHS_update(H_k(RHS)) + rho_k*(s_k)*s_k')*x;
+        
+        %==================================================================================
+        
+        if extractH
+            % Extraction of H_k as handler
+             info.H = [info.H H_k(eye(2))];
+             info.H
+        end
     end
-       
-    alpha_k = ls(x_k, p_k, alpha0); % alpha at iter. k via line search
-    x_k_1 = x_k; % x_k_1 set to prev. iter. point
-    x_k = x_k + alpha_k*p_k; % next iteration point.
-    xs(nIter+1, :)=x_k;
-    alphas(nIter+1)=alpha_k;
     
-    nIter = nIter + 1; % increment number of iters.
+
+    % Store iteration info
+    info.xs = [info.xs x_k];
+    info.alphas = [info.alphas alpha_k];
     
-    % =====================================================================   
     switch stopType
       case 'step' 
         % Compute relative step length
-        normStep = norm(x_k-x_k_1)/norm(x_k_1); 
-        stopCond = (abs(normStep) < tol);
+        normStep = norm(x_k - x_k_1)/norm(x_k_1);
+        stopCond = (normStep < tol);
       case 'grad'
-        stopCond = (norm(F.df(x_k), 'inf') < tol*(1 + tol*abs(F.f(x_k))));
+        stopCond = (norm(F.df(x_k), 'inf') < tol*(1 + abs(F.f(x_k))));
     end
     
 end
@@ -79,7 +135,4 @@ end
 % Assign output values 
 xMin = x_k;
 fMin = F.f(x_k); 
-info.xs = xs;
-info.alphas = alphas;
 
-end

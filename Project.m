@@ -10,7 +10,7 @@ addpath Lib
 %--------------------------------------------------------------------------
 %% Simulating dataset 
 %--------------------------------------------------------------------------
-numOfPoints = 2;
+numOfPoints = 50;
 theta = linspace(0, 2*pi, numOfPoints/2);
 % 4th column = 0 will later be used to store mapped values from kernels
 scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
@@ -74,7 +74,6 @@ for i = 1:numOfPoints
         H(i,j) = dataset(i,4)*dataset(j,4)*dot(dataset(i,1:3), dataset(j,1:3));
     end
 end
-H
 disp("Calculated Hessian.")
 
 %% Formulating minimisation problem
@@ -125,13 +124,13 @@ disp("Formulated minimisation problem.")
 a0 = 0*ones(length(H), 1);
 
 % Parameters
-mu_e0 = -1;
+mu_e0 = -10;
 lambda_e0 = 3;
-mu_I0 = -1;
-lambda_I0 = 100*ones(length(H), 1);
-tol = 1e-8; 
+mu_I0 = -10;
+lambda_I0 = ones(length(H), 1);
+tol = 1e-6; 
 alpha0 = 1;
-maxIter = 100;
+maxIter = 500;
 storeInfo = true;
 dataGroups = dataset(:,4);
 %==========================================================================
@@ -163,7 +162,6 @@ if(numOfPoints == 3)
 end
 %==========================================================================
 
-
 % Plotting Convergence of a_k:
 %==========================================================================
 successiveDiff = [diff(info.as(1,:)); diff(info.as(2,:))];
@@ -173,12 +171,20 @@ xlabel("Iteration")
 ylabel("||\alpha_k - \alpha_k_-_1)||")
 %==========================================================================
 
+% % Plotting Convergence of df:
+% %==========================================================================
+% figure('name', 'Convergence of df')
+% semilogy(vecnorm(info.diff, 2, 1))
+% xlabel("Iteration")
+% ylabel("||df||")
+% %==========================================================================
+
 % Plotting Convergence of a_k:
 %==========================================================================
-figure('name', 'Convergence of alpha')
-semilogy(vecnorm(info.diff, 2, 1))
+figure('name', 'Convergence of df')
+plot(vecnorm(info.as, 2, 1))
 xlabel("Iteration")
-ylabel("||df||")
+ylabel("||a_k||")
 %==========================================================================
 
 
@@ -200,96 +206,67 @@ xlabel("Iteration")
 % xlabel("Iteration")
 
 figure('name', 'lambda_e')
-semilogy(info.lambda_e)
+plot(info.lambda_e)
 ylabel("||\lambda^e||")
 xlabel("Iteration")
 %==========================================================================
 disp("Plotting results")
 
-% %% Calculating W
-% %----------------
-% % w = sum(alpha_i * y_i * x_i)
-% %==========================================================================
-% w = calcW(a_k, dataset(:,1:3), dataset(:,4));
-% %==========================================================================
-% disp("Calculating w")
-% 
-% %% Determine Support Vectors
-% %---------------------------
-% % Indicies for a_i > 0
-% p_points = dataset(1:split, 1:3)
-% n_points = dataset(split+1:end, 1:3)
-% 
-% aMaxp = -1
-% aMinn = -1
-% for i = 1:length(a_k)
-%     if i <= split
-%         if a_k(i) > aMaxp
-%             aMaxp = a_k(i);
-%             supportIndex(1) = i;
-%         end
-%     else
-%         if a_k(i) > aMaxn
-%             aMaxn = a_k(i);
-%             supportIndex(2) = i;
-%         end
-%     end
-% end
-% 
-% supportIndex;
-% supportVectors = [p_points(supportIndex(1),:), a_k(supportIndex(1));
-%                   n_points(supportIndex(2),:), a_k(supportIndex(2) + split)];
-% 
-%               
-% figure('name', 'Radial Basis Kernel Mapping')
-% hold on
-% scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
-% scatter3(dataset(10, 1), dataset(10, 2), dataset(10,3),'k', 'o');
-% scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
-% scatter3(dataset(split+1, 1), dataset(split+1, 2), dataset(split+1,3), 'k', '*');
-% hold off
-% title("Radial Basis Kernel Mapping")
-% legend("y_i = 1", "y_i = -1")
-% hold off              
-% 
-% disp("Calculating Support Vectors")
 
-% %% Calculating b
-% %---------------
-% b = calcb(supportVectors)
-% 
-% disp("calculating b")
-% 
-% %% Plotting SVM plane
-% %--------------------
-% 
-% func = @(x,y) (-b - w(1)*x - w(2)*y)/w(3);
-% [X,Y] = meshgrid(-4:0.1:4, -4:0.1:4);
-% Z = func(X,Y);
-% 
-% figure('name', 'SVM Mapping')
-% hold on
-% scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
-% surf(X,Y,Z)
-% scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
-% xlabel('x')
-% ylabel('y')
-% zlabel('z')
-% legend("y_i = 1", "SVM", "y_i = -1")
-% hold off
-% 
-% disp("Plotting SVM plane")
-% 
-% 
-% 
-% 
-% 
-% %%
-% x = supportVectors(:,1:3)
-% supportVectors
-% dot(x(1,:), w) 
-% dot(x(2,:), w) 
+%% Calculating W
+%----------------
+% w = sum(alpha_i * y_i * x_i)
+%==========================================================================
+w = calcW(a_k, dataset(:,1:3), dataset(:,4));
+%==========================================================================
+disp("Calculating w")
 
+%% Determine Support Vectors
+%---------------------------
+% Indicies for a_i > 0
+
+supportVecs = [];
+
+for i = 1:length(a_k)
+    if(a_k(i) > 0.01)
+        % use i as supportVec
+        supportVecs = [supportVecs; dataset(i,:), a_k(i)];        
+    end
+end
+
+disp("Calculating Support Vectors")
+
+%% Calculating b
+%---------------
+b = calcb(supportVecs);
+
+disp("calculating b")
+
+%% Plotting SVM plane
+%--------------------
+
+func = @(x,y) (-b - w(1)*x - w(2)*y)/w(3);
+[X,Y] = meshgrid(-4:0.1:4, -4:0.1:4);
+Z = func(X,Y);
+
+figure('name', 'SVM Mapping')
+hold on
+scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
+surf(X,Y,Z)
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
+xlabel('x')
+ylabel('y')
+zlabel('z')
+legend("y_i = 1", "SVM", "y_i = -1")
+hold off
+
+disp("Plotting SVM plane")
+
+
+
+
+
+%%
 
 
 

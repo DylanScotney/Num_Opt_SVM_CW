@@ -21,13 +21,13 @@ info.lambda_e = [];
 info.mu_I = [];
 info.lambda_I = [];
 info.as = [];
-info.fmax = [];
 info.diff = [];
 %===========================
 
 a_k_1 = a_k + 1;
 stopCond = false;
 nIter = 0;
+desMaxIters = maxIter;
 
 while(~stopCond)
     
@@ -38,30 +38,24 @@ while(~stopCond)
     L_k.d2f = @(a) -L.d2f(a, mu_e_k, mu_I_k, lambda_I_k);
     %======================================================================
     
-    % Store Params
-    %======================================================================
-    if(storeInfo)
-            info.lambda_e = [info.lambda_e lambda_e_k];
-            info.lambda_I = [info.lambda_I lambda_I_k];
-            info.mu_e = [info.mu_e mu_e_k];
-            info.mu_I = [info.mu_I mu_I_k];
-            info.as = [info.as a_k];
-            info.fmax = [info.fmax L.f(a_k, realmax, 0,...
-                                       realmax, zeros(length(a_k)))];
-            info.diff = [info.diff L_k.df(a_k)];
-    end
-    %====================================================================== 
     
     % Compute step using backtracking and nLConjGrad:
     %======================================================================
     btlsFun = @(a_k, p_k, alpha0) backtracking(L_k, a_k, p_k,...
-                                               alpha0, btlsOpts);   
-    nIter
-%     [a_k, ~, ~, ~] = nonlinearConjugateGradient(L_k, btlsFun, 'FR',...
-%                                                alpha0, a_k, tol, maxIter);
-     
-    [a_k, ~, ~, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
-                                       a_k, tol, maxIter);                                       
+                                               alpha0, btlsOpts);  
+    
+     nIter
+    if(nIter < 0)
+        [a_k, ~, ~, ~] = nonlinearConjugateGradient(L_k, btlsFun, 'FR',...
+                                                     alpha0, a_k, tol, maxIter);
+        disp("Conj")
+    else
+        a_k_1 = a_k;
+       [a_k, ~, ~, desInfo] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
+                                                     a_k, tol, 40*maxIter); 
+        disp("Newt")
+    end    
+    
    
     
     %======================================================================
@@ -72,19 +66,31 @@ while(~stopCond)
     else
         % Update params:
         %==================================================================
-        lambda_e_k = lambda_e_k - sum(a_k.*classification)/mu_e_k;
+        %lambda_e_k = lambda_e_k - sum(a_k.*classification)/mu_e_k;
         
-        lambda_I_k = max(lambda_I_k - a_k/mu_I_k, 0);
+        %lambda_I_k = max(lambda_I_k - a_k/mu_I_k, 0);
         
         if(abs(mu_I_k) < realmin*10)
             % stop updating mu
         else        
             mu_e_k = 1*mu_e_k;
-            mu_I_k = 0.95*mu_I_k;
+            mu_I_k = 0.7*mu_I_k;
         end
         
         a_k_1 = a_k;
         %========================================================
+        
+        % Store Params
+        %========================================================
+        if(storeInfo)
+                info.lambda_e = [info.lambda_e lambda_e_k];
+                info.lambda_I = [info.lambda_I lambda_I_k];
+                info.mu_e = [info.mu_e mu_e_k];
+                info.mu_I = [info.mu_I mu_I_k];
+                info.as = [info.as a_k];
+                info.diff = [info.diff L_k.df(a_k)];
+        end
+        %=========================================================
         
         nIter = nIter + 1;
         if(nIter>maxIter)

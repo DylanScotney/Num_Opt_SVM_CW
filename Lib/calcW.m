@@ -14,13 +14,9 @@ function w = calcW(alpha, x, y)
 % SVM Explained, Tristan Fletcher UCL, [AVAILABLE AT]
 % [https://cling.csd.uwo.ca/cs860/papers/SVM_Explained.pdfExtra]
 
-
 w = zeros(length(x(1,:)),1);
-
-for i = 1:length(w)
-    for j = 1:length(alpha)
-        w(i) = w(i) + alpha(j)*y(j)*x(j,i);
-    end
+for  i = 1:length(alpha)
+    w = w + alpha(i)*y(i)*x(i,1:3)';
 end
 
 end
