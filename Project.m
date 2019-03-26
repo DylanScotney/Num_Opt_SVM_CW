@@ -10,7 +10,7 @@ addpath Lib
 %--------------------------------------------------------------------------
 %% Simulating dataset 
 %--------------------------------------------------------------------------
-numOfPoints = 100; % code will round down if not even
+numOfPoints = 200; % code will round down if not even
 theta = linspace(0, 2*pi, numOfPoints/2);
 % 4th column = 0 will later be used to store mapped values from kernels
 scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
@@ -146,8 +146,8 @@ dataGroups = dataset(:,4);
 [a_k, f_max, nIter, info] = augLagFramework(L, a0, dataGroups, mu_e0,...
                                             lambda_e0, mu_I0, lambda_I0,...
                                             tol, maxIter, storeInfo);
-a_k
-norm(info.diff(:,end))
+a_k;
+norm(info.diff(:,end));
 %==========================================================================
 disp("Solving minimisation problem.")  
 disp(info.stopCond)

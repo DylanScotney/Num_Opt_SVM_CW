@@ -1,5 +1,7 @@
 function b = calcb(supportVectors)
-%Calculates b using support vector info see SVM explained 
+% Calculates b using support vector info see SVM explained by Tristan
+% Fletcher for more info: 
+% [https://cling.csd.uwo.ca/cs860/papers/SVM_Explained.pdf]
 y = supportVectors(:,4);
 alpha = supportVectors(:,5);
 x = supportVectors(:,1:3);

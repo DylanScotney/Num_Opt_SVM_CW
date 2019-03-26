@@ -3,6 +3,37 @@ function [a_k, f_max, nIter, info] = augLagFramework(L, a0, classification,...
                                                      mu_I0, lambda_I0, tol,...
                                                      maxIter, storeInfo)
 
+% Framework of the Augmented Lagrandian Method as described by Framework
+% 17.3 in Nocedal and Wright using a Newton step with backtracking 
+% linesearch, see: 
+% [http://www.bioinfo.org.cn/~wangchao/maa/Numerical_Optimization.pdf]
+% for more info. 
+%
+% Inputs:
+%   - L:    The augmented lagrangian stucture holding
+%           - L.f the aug lagrangian function handler
+%           - L.df the gradient handler
+%           - L.d2f the hessian handler
+%   - a0:   The initial guess of the solution 
+%   - classification:   1D vector of length(a0) corresponding to the 
+%                       (binary) classification of each a_i
+%   - mu_e0, 
+%     lambda_e0, 
+%     mu_I0, 
+%     lambda_I0:    Initial estimates for langrangian and penalty params for 
+%                   equality and inequality constraints. see report for 
+%                   more info. 
+%   - tol:  specified tolerance 
+%   - maxIter:  specified maximum iterations 
+%   - storeInfo:    bool to store info at each iteration
+%
+% Outputs:
+%   - a_k:  solution to problem 
+%   - f_max:    L.f(a_k)
+%   - info: struct containing info about params at each iteration
+
+
+
 % Back tracking line search WC:
 btlsOpts.c1 = 1e-4;
 btlsOpts.rho = 0.8;
@@ -56,7 +87,7 @@ while(~stopCond)
     %======================================================================
     btlsFun = @(a_k, p_k, alpha0) backtracking(L_k, a_k, p_k,...
                                                alpha0, btlsOpts);   
-    nIter     
+    nIter   
     [a_k, ~, ~, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
                                        a_k, tol, maxIter);                                       
    
