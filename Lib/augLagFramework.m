@@ -33,9 +33,9 @@ while(~stopCond)
     
     % Define as minimisation problem i.e L(x) := -L(x):
     %======================================================================
-    L_k.f = @(a) -L.f(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
-    L_k.df = @(a) -L.df(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
-    L_k.d2f = @(a) -L.d2f(a, mu_e_k, mu_I_k, lambda_I_k);
+    L_k.f = @(a) L.f(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
+    L_k.df = @(a) L.df(a, mu_e_k, lambda_e_k, mu_I_k, lambda_I_k);
+    L_k.d2f = @(a) L.d2f(a, mu_e_k, mu_I_k, lambda_I_k);
     %======================================================================
     
     % Store Params
@@ -77,7 +77,7 @@ while(~stopCond)
             % stop updating mu
         else        
             mu_e_k = 1*mu_e_k;
-            mu_I_k = 0.95*mu_I_k;
+            mu_I_k = 0.99*mu_I_k;
         end
         
         a_k_1 = a_k;
