@@ -10,7 +10,7 @@ addpath Lib
 %--------------------------------------------------------------------------
 %% Simulating dataset 
 %--------------------------------------------------------------------------
-numOfPoints = 50;
+numOfPoints = 20;
 theta = linspace(0, 2*pi, numOfPoints/2);
 % 4th column = 0 will later be used to store mapped values from kernels
 scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
@@ -39,30 +39,33 @@ hold off
 
 disp("Simulated data set.")
 
-%--------------------------------------------------------------------------
-%% RADIAL BASIS KERNEL SOLUTION
-%--------------------------------------------------------------------------
 
-%% Seperating dataset with Radial Basis kernel 
-%---------------------------------------------
-sigma = 2;
-kernel = @(xi,xj) exp(-sqrt(sum((xi-xj).^2,2))/2*sigma^2);
+%% Seperating dataset with kernel 
+%--------------------------------
 
-for i = 1:numOfPoints
-    % Store New Z values in 3th column
-    dataset(i,3) = sum(kernel(dataset(i,1:2),dataset(:,1:2)));
-end
+% Radial Basis Kernel:
+%---------------------
+dataset = radialBasisKernel(dataset);
 
+% Polynomial Kernel:
+%-------------------
+%dataset = polynomialKernel(dataset);
+
+
+% Plot Seperated Data
+%==========================================================================
 split = numOfPoints/2;
 
 figure('name', 'Radial Basis Kernel Mapping')
-scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
+scatter3(dataset(1:split, 1), dataset(1:split, 2),...
+         dataset(1:split,3), 'o');
 hold on
-scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), ...
+         dataset(split+1:end,3), '*');
 title("Radial Basis Kernel Mapping")
 legend("y_i = 1", "y_i = -1")
 hold off
-
+%==========================================================================
 disp("Seperated data with radial basis kernel.")
 
 %% Calculating Hessian of Radial Basis Kernel
@@ -261,60 +264,6 @@ legend("y_i = 1", "SVM", "y_i = -1")
 hold off
 
 disp("Plotting SVM plane")
-
-
-
-
-
-%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% Seperating dataset with polynomial kernel
-% b=2; 
-% a=0;
-% kernel = @(xi, xj) (dot(xi,xj)+a)^b;
-% 
-% for j = 1:numOfPoints
-%     z2(j) = 0;
-%     for i = 1:numOfPoints
-%         z2(j) = z2(j) + kernel(dataset(j,1:2), dataset(i,1:2));
-%     end
-% end
-% 
-% split = numOfPoints/2;
-% 
-% figure(3)
-% scatter3(dataset(1:split, 1), dataset(1:split, 2), z2(1:split), 'o');
-% hold on
-% scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), z2(split+1:end), '*');
-% title("Sigmoidal Kernel Mapping")
-% legend("y_i = 1", "y_i = -1")
-% hold off
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
