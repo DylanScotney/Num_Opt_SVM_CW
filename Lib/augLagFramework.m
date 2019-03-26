@@ -52,14 +52,11 @@ while(~stopCond)
     end
     %====================================================================== 
     
-    % Compute step using backtracking and nLConjGrad:
+    % Compute step using backtracking and newt descent:
     %======================================================================
     btlsFun = @(a_k, p_k, alpha0) backtracking(L_k, a_k, p_k,...
                                                alpha0, btlsOpts);   
-    nIter
-%     [a_k, ~, ~, ~] = nonlinearConjugateGradient(L_k, btlsFun, 'FR',...
-%                                                alpha0, a_k, tol, maxIter);
-     
+    nIter     
     [a_k, ~, ~, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
                                        a_k, tol, maxIter);                                       
    

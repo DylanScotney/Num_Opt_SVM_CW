@@ -10,7 +10,7 @@ addpath Lib
 %--------------------------------------------------------------------------
 %% Simulating dataset 
 %--------------------------------------------------------------------------
-numOfPoints = 20;
+numOfPoints = 50; % code will round down if not even
 theta = linspace(0, 2*pi, numOfPoints/2);
 % 4th column = 0 will later be used to store mapped values from kernels
 scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
@@ -34,14 +34,14 @@ scatter(dataset_p(:,1), dataset_p(:,2), 'o')
 scatter(dataset_m(:,1), dataset_m(:,2), '*')
 title("2D data set")
 legend("y_i = 1", "y_i = -1")
-grid on 
+grid off
 hold off
 
 disp("Simulated data set.")
 
-
+%--------------------------------------------------------------------------
 %% Seperating dataset with kernel 
-%--------------------------------
+%--------------------------------------------------------------------------
 
 % Radial Basis Kernel:
 %---------------------
@@ -68,8 +68,9 @@ hold off
 %==========================================================================
 disp("Seperated data with radial basis kernel.")
 
+%--------------------------------------------------------------------------
 %% Calculating Hessian of Radial Basis Kernel
-%--------------------------------------------
+%--------------------------------------------------------------------------
 % Computing matrix H
 H = zeros(numOfPoints,numOfPoints);
 for i = 1:numOfPoints
@@ -79,8 +80,9 @@ for i = 1:numOfPoints
 end
 disp("Calculated Hessian.")
 
+%--------------------------------------------------------------------------
 %% Formulating minimisation problem
-%----------------------------------
+%--------------------------------------------------------------------------
 
 group = dataset(:, 4); %classification of each point
 
@@ -118,8 +120,9 @@ L.d2f = @(a, mu_e, mu_I, lambda_I) d2AugLagrangian(d2f, d2c_e, d2psi, a, mu_e,..
 
 disp("Formulated minimisation problem.")
 
+%--------------------------------------------------------------------------
 %% Solving Minimisation Problem
-%------------------------------
+%--------------------------------------------------------------------------
 
 % Initialisation:
 %==========================================================================
@@ -143,14 +146,15 @@ dataGroups = dataset(:,4);
 [a_k, f_max, nIter, info] = augLagFramework(L, a0, dataGroups, mu_e0,...
                                             lambda_e0, mu_I0, lambda_I0,...
                                             tol, maxIter, storeInfo);
-a_k
-norm(info.diff(:,end))
+a_k;
+norm(info.diff(:,end));
 %==========================================================================
-disp("Solved minimisation problem.")  
+disp("Solving minimisation problem.")  
 disp(info.stopCond)
 
+%--------------------------------------------------------------------------
 %% Plotting data of solution
-%---------------------------
+%--------------------------------------------------------------------------
 
 % Plotting paths if 2D problem: 
 %==========================================================================
@@ -216,37 +220,38 @@ xlabel("Iteration")
 disp("Plotting results")
 
 
-%% Calculating W
-%----------------
-% w = sum(alpha_i * y_i * x_i)
+%--------------------------------------------------------------------------
+%% Calculating Equation of Plane
+%--------------------------------------------------------------------------
+
+% Calculate w = sum(alpha_i * y_i * x_i)
 %==========================================================================
 w = calcW(a_k, dataset(:,1:3), dataset(:,4));
-%==========================================================================
 disp("Calculating w")
+%==========================================================================
 
-%% Determine Support Vectors
-%---------------------------
+% Determine Support Vectors
+%==========================================================================
 % Indicies for a_i > 0
-
 supportVecs = [];
-
 for i = 1:length(a_k)
     if(a_k(i) > 0.01)
         % use i as supportVec
         supportVecs = [supportVecs; dataset(i,:), a_k(i)];        
     end
 end
-
 disp("Calculating Support Vectors")
+%==========================================================================
 
-%% Calculating b
-%---------------
+% Calculating b
+%==========================================================================
 b = calcb(supportVecs);
-
 disp("calculating b")
+%==========================================================================
 
+%--------------------------------------------------------------------------
 %% Plotting SVM plane
-%--------------------
+%--------------------------------------------------------------------------
 
 func = @(x,y) (-b - w(1)*x - w(2)*y)/w(3);
 [X,Y] = meshgrid(-4:0.1:4, -4:0.1:4);
