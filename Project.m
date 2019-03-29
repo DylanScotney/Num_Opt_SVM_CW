@@ -127,14 +127,14 @@ disp("Formulated minimisation problem.")
 % Initialisation:
 %==========================================================================
 % Starting point
-a0 = 0*ones(length(H), 1);
+a0 = zeros(length(H), 1);
 
 % Parameters
-mu_e0 = 10;
-lambda_e0 = 3;
+mu_e0 = 1;
+lambda_e0 = 1;
 mu_I0 = 1;
 lambda_I0 = ones(length(H), 1);
-tol = 1e-6; 
+tol = 1e-8;
 alpha0 = 1;
 maxIter = 500;
 storeInfo = true;
@@ -147,7 +147,7 @@ dataGroups = dataset(:,4);
                                             lambda_e0, mu_I0, lambda_I0,...
                                             tol, maxIter, storeInfo);
 a_k;
-norm(info.diff(:,end));
+norm(info.diff(:,end))
 %==========================================================================
 disp("Solving minimisation problem.")  
 disp(info.stopCond)
@@ -178,20 +178,12 @@ xlabel("Iteration")
 ylabel("||\alpha_k - \alpha_k_-_1)||")
 %==========================================================================
 
-% % Plotting Convergence of df:
-% %==========================================================================
-% figure('name', 'Convergence of df')
-% semilogy(vecnorm(info.diff, 2, 1))
-% xlabel("Iteration")
-% ylabel("||df||")
-% %==========================================================================
-
-% Plotting Convergence of a_k:
+% Plotting newt iters:
 %==========================================================================
-figure('name', 'Convergence of df')
-plot(vecnorm(info.as, 2, 1))
+figure('name', 'newtIters')
+plot(info.newtIter)
 xlabel("Iteration")
-ylabel("||a_k||")
+ylabel("Newton method iterations")
 %==========================================================================
 
 
@@ -202,19 +194,22 @@ plot(vecnorm(info.lambda_I,2,1))
 ylabel("||\lambda^I||")
 xlabel("Iteration")
 
-% figure('name', 'mu_I')
-% semilogy(info.mu_I)
-% ylabel("||\mu^I||")
-% xlabel("Iteration")
-% 
-% figure('name', 'mu_e')
-% semilogy(info.mu_e)
-% ylabel("||\mu^e||")
-% xlabel("Iteration")
+figure('name', 'mu_I')
+semilogy(info.mu_I)
+ylabel("||\mu^I||")
+xlabel("Iteration")
+
+figure('name', 'mu_e')
+semilogy(info.mu_e)
+ylabel("||\mu^e||")
+xlabel("Iteration")
 
 figure('name', 'lambda_e')
+hold on
 plot(info.lambda_e)
-ylabel("||\lambda^e||")
+plot(vecnorm(info.lambda_I,2,1))
+ylim([0,140])
+legend("||\lambda^e||", "||\lambda^I||")
 xlabel("Iteration")
 %==========================================================================
 disp("Plotting results")
@@ -226,7 +221,7 @@ disp("Plotting results")
 
 % Calculate w = sum(alpha_i * y_i * x_i)
 %==========================================================================
-w = calcW(a_k, dataset(:,1:3), dataset(:,4));
+w = calcW(a_k, dataset);
 disp("Calculating w")
 %==========================================================================
 
@@ -234,10 +229,12 @@ disp("Calculating w")
 %==========================================================================
 % Indicies for a_i > 0
 supportVecs = [];
+sVecsI = [];
 for i = 1:length(a_k)
     if(a_k(i) > 0.01)
         % use i as supportVec
-        supportVecs = [supportVecs; dataset(i,:), a_k(i)];        
+        supportVecs = [supportVecs; dataset(i,:), a_k(i)];   
+        sVecsI = [sVecsI; i];
     end
 end
 disp("Calculating Support Vectors")
@@ -262,6 +259,7 @@ hold on
 scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
 surf(X,Y,Z)
 scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
+scatter3(dataset(sVecsI, 1), dataset(sVecsI, 2), dataset(sVecsI,3), 'k', '*');
 xlabel('x')
 ylabel('y')
 zlabel('z')
@@ -270,7 +268,5 @@ hold off
 
 disp("Plotting SVM plane")
 
-
-
-
+%% 
 

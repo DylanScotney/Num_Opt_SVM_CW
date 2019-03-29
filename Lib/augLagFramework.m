@@ -47,13 +47,15 @@ mu_I_k = mu_I0;
 lambda_I_k = lambda_I0;
 a_k = a0;
 
-info.mu_e = [];
-info.lambda_e = [];
-info.mu_I = [];
-info.lambda_I = [];
-info.as = [];
-info.fmax = [];
+info.mu_e = mu_e_k;
+info.lambda_e = lambda_e_k ;
+info.mu_I = mu_I_k;
+info.lambda_I = lambda_I_k;
+info.as = a_k;
 info.diff = [];
+info.newtIter = [];
+info.detHes = [];
+info.normHes=[];
 %===========================
 
 a_k_1 = a_k + 1;
@@ -69,29 +71,15 @@ while(~stopCond)
     L_k.d2f = @(a) L.d2f(a, mu_e_k, mu_I_k, lambda_I_k);
     %======================================================================
     
-    % Store Params
-    %======================================================================
-    if(storeInfo)
-            info.lambda_e = [info.lambda_e lambda_e_k];
-            info.lambda_I = [info.lambda_I lambda_I_k];
-            info.mu_e = [info.mu_e mu_e_k];
-            info.mu_I = [info.mu_I mu_I_k];
-            info.as = [info.as a_k];
-            info.fmax = [info.fmax L.f(a_k, realmax, 0,...
-                                       realmax, zeros(length(a_k)))];
-            info.diff = [info.diff L_k.df(a_k)];
-    end
-    %====================================================================== 
-    
     % Compute step using backtracking and newt descent:
     %======================================================================
     btlsFun = @(a_k, p_k, alpha0) backtracking(L_k, a_k, p_k,...
                                                alpha0, btlsOpts);   
-    nIter   
-    [a_k, ~, ~, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
+                                           
+    [a_k, ~, nNewt, ~] = descentLineSearch(L_k, 'newton', btlsFun, alpha0,...
                                        a_k, tol, maxIter);                                       
-   
-    
+    info.newtIter = [info.newtIter; nNewt];
+    nIter
     %======================================================================
     
     if(norm(a_k - a_k_1)/norm(a_k_1) < tol)
@@ -106,13 +94,27 @@ while(~stopCond)
         
         if(abs(mu_I_k) < realmin*10)
             % stop updating mu
-        else        
-            mu_e_k = 1*mu_e_k;
-            mu_I_k = 0.99*mu_I_k;
+        else
+                mu_e_k = 1*mu_e_k; 
+                mu_I_k = 1*mu_I_k; 
         end
         
         a_k_1 = a_k;
         %========================================================
+        
+        % Store Params
+        %======================================================================
+        if(storeInfo)
+                info.lambda_e = [info.lambda_e lambda_e_k];
+                info.lambda_I = [info.lambda_I lambda_I_k];
+                info.mu_e = [info.mu_e mu_e_k];
+                info.mu_I = [info.mu_I mu_I_k];
+                info.as = [info.as a_k];
+                info.diff = [info.diff L_k.df(a_k)];
+                info.detHes = [info.detHes det(L_k.d2f(a_k))];
+                info.normHes = [info.normHes norm(L_k.d2f(a_k))];
+        end
+        %====================================================================== 
         
         nIter = nIter + 1;
         if(nIter>maxIter)

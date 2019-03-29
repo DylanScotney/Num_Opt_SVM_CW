@@ -6,9 +6,10 @@ function result = polynomialKernel(dataset)
 % outputs: a Nx4 matrix where each row is:
 %          [xcoord, ycoord, zcoord, class]
 
-b=2; 
+b=0.1; 
 a=0;
-kernel = @(xi, xj) (dot(xi,xj)+a)^b;
+c=0.5;
+kernel = @(xi, xj) c*norm(dot(xi,xj) + a)^b;
 numOfPoints = length(dataset(:,1));
 
 result = dataset;
