@@ -1,0 +1,824 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Project</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-05-19"><meta name="DC.source" content="Project.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Numerical Optimisation Project</a></li><li><a href="#2">Simulating dataset</a></li><li><a href="#3">Seperating dataset with kernel</a></li><li><a href="#4">Calculating Hessian of Radial Basis Kernel</a></li><li><a href="#5">Formulating minimisation problem</a></li><li><a href="#6">Solving Minimisation Problem</a></li><li><a href="#7">Plotting data of solution</a></li><li><a href="#8">Calculating Equation of Plane</a></li><li><a href="#9">Plotting SVM plane</a></li></ul></div><h2 id="1">Numerical Optimisation Project</h2><p>Name: Dylan Scotney SN: 18138211 Submission date: 09/04/2019</p><pre class="codeinput"><span class="comment">% clear cache and variables</span>
+clear <span class="string">cache</span> <span class="string">variables</span>
+addpath <span class="string">Lib</span>
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><h2 id="2">Simulating dataset</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+numOfPoints = 200; <span class="comment">% code will round down if not even</span>
+theta = linspace(0, 2*pi, numOfPoints/2);
+<span class="comment">% 4th column = 0 will later be used to store mapped values from kernels</span>
+scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
+                                     r * sin(theta) + noise(2,:);
+                                     0*theta;
+                                     class*ones(1,length(theta))];
+
+<span class="comment">% Generate random sets with norm distribution, acts as noise on sample</span>
+data_generator = rng(0,<span class="string">'v5normal'</span>);
+noise1 = rand(2,length(theta));
+noise2 = rand(2,length(theta));
+
+dataset_p = scatter_circle(1, noise1, 1)';
+dataset_m = scatter_circle(3, noise2, -1)';
+dataset = [dataset_p; dataset_m];
+
+<span class="comment">% Plot data</span>
+figure(<span class="string">'name'</span>, <span class="string">'Non-Linearly Seperable Data'</span>)
+hold <span class="string">on</span>
+scatter(dataset_p(:,1), dataset_p(:,2), <span class="string">'o'</span>)
+scatter(dataset_m(:,1), dataset_m(:,2), <span class="string">'*'</span>)
+title(<span class="string">"2D data set"</span>)
+legend(<span class="string">"y_i = 1"</span>, <span class="string">"y_i = -1"</span>)
+grid <span class="string">off</span>
+hold <span class="string">off</span>
+
+disp(<span class="string">"Simulated data set."</span>)
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Simulated data set.
+</pre><img vspace="5" hspace="5" src="Project_01.png" alt=""> <h2 id="3">Seperating dataset with kernel</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+<span class="comment">% Radial Basis Kernel:</span>
+<span class="comment">%---------------------</span>
+dataset = radialBasisKernel(dataset);
+
+<span class="comment">% Polynomial Kernel:</span>
+<span class="comment">%-------------------</span>
+<span class="comment">%dataset = polynomialKernel(dataset);</span>
+
+
+<span class="comment">% Plot Seperated Data</span>
+<span class="comment">%==========================================================================</span>
+split = numOfPoints/2;
+
+figure(<span class="string">'name'</span>, <span class="string">'Radial Basis Kernel Mapping'</span>)
+scatter3(dataset(1:split, 1), dataset(1:split, 2),<span class="keyword">...</span>
+         dataset(1:split,3), <span class="string">'o'</span>);
+hold <span class="string">on</span>
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), <span class="keyword">...</span>
+         dataset(split+1:end,3), <span class="string">'*'</span>);
+title(<span class="string">"Radial Basis Kernel Mapping"</span>)
+legend(<span class="string">"y_i = 1"</span>, <span class="string">"y_i = -1"</span>)
+hold <span class="string">off</span>
+<span class="comment">%==========================================================================</span>
+disp(<span class="string">"Seperated data with radial basis kernel."</span>)
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Seperated data with radial basis kernel.
+</pre><img vspace="5" hspace="5" src="Project_02.png" alt=""> <h2 id="4">Calculating Hessian of Radial Basis Kernel</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+<span class="comment">% Computing matrix H</span>
+H = zeros(numOfPoints,numOfPoints);
+<span class="keyword">for</span> i = 1:numOfPoints
+    <span class="keyword">for</span> j = 1:numOfPoints
+        H(i,j) = dataset(i,4)*dataset(j,4)*dot(dataset(i,1:3), dataset(j,1:3));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+disp(<span class="string">"Calculated Hessian."</span>)
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Calculated Hessian.
+</pre><h2 id="5">Formulating minimisation problem</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+group = dataset(:, 4); <span class="comment">%classification of each point</span>
+
+<span class="comment">% Define function handles for augLag and diffAugLag:</span>
+<span class="comment">%==========================================================================</span>
+f = @(a) F(a, H);
+c_e = @(a) C_e(a, group);
+psi = @(a, mu_I, lambda_I) Psi(a, mu_I, lambda_I);
+
+df = @(a) dF(a, H);
+dc_e = dC_e(group);
+dpsi = @ (a, mu_I, lambda_I) dPsi(a, mu_I, lambda_I);
+
+d2f = d2F(H);
+d2c_e = @(mu_e) 1/mu_e * d2C_e(group);
+d2psi = @(a, mu_I, lambda_I) d2Psi(a, mu_I,  lambda_I);
+
+<span class="comment">%==========================================================================</span>
+
+
+<span class="comment">% Defining Lagrangian (see report) &lt;add more info here&gt;</span>
+<span class="comment">%==========================================================================</span>
+L.f = @(a, mu_e, lambda_e, mu_I, lambda_I) augLagrangian(f, c_e, psi, a,<span class="keyword">...</span>
+                                                       mu_e, lambda_e, <span class="keyword">...</span>
+                                                       mu_I,lambda_I);
+
+L.df = @(a, mu_e, lambda_e, mu_I, lambda_I) diffAugLagrangian(df, dc_e, c_e,<span class="keyword">...</span>
+                                                            dpsi, a, mu_e,<span class="keyword">...</span>
+                                                            lambda_e, mu_I,<span class="keyword">...</span>
+                                                            lambda_I);
+
+L.d2f = @(a, mu_e, mu_I, lambda_I) d2AugLagrangian(d2f, d2c_e, d2psi, a, mu_e,<span class="keyword">...</span>
+                                             mu_I, lambda_I);
+<span class="comment">%==========================================================================</span>
+
+disp(<span class="string">"Formulated minimisation problem."</span>)
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Formulated minimisation problem.
+</pre><h2 id="6">Solving Minimisation Problem</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+<span class="comment">% Initialisation:</span>
+<span class="comment">%==========================================================================</span>
+<span class="comment">% Starting point</span>
+a0 = zeros(length(H), 1);
+
+<span class="comment">% Parameters</span>
+mu_e0 = 1;
+lambda_e0 = 1;
+mu_I0 = 1;
+lambda_I0 = ones(length(H), 1);
+tol = 1e-8;
+alpha0 = 1;
+maxIter = 500;
+storeInfo = true;
+dataGroups = dataset(:,4);
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">% Solving using Framework 17.3 from Nocedal and Wright:</span>
+<span class="comment">%=========================================================================</span>
+[a_k, f_max, nIter, info] = augLagFramework(L, a0, dataGroups, mu_e0,<span class="keyword">...</span>
+                                            lambda_e0, mu_I0, lambda_I0,<span class="keyword">...</span>
+                                            tol, maxIter, storeInfo);
+a_k;
+norm(info.diff(:,end))
+<span class="comment">%==========================================================================</span>
+disp(<span class="string">"Solving minimisation problem."</span>)
+disp(info.stopCond)
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.642235e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.041615e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.057436e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.210773e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.626982e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.085957e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.389904e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.552565e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.527161e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.393110e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.044457e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.137106e-22. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.387161e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.737009e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.885465e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.576764e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  6.538358e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.215258e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.344261e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.462699e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.704048e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.548025e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.663570e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.663570e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.663570e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.872769e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.191268e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.860102e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.555439e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.088178e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.314251e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.471190e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.152253e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.638393e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.364758e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.084401e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.019525e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.237888e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.718279e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.654992e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.572079e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.811595e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  6.279693e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.556399e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.376013e-21. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.683178e-23. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  7.683178e-23. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.266045e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.266045e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.556775e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.564941e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.540177e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.509527e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  6.444142e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  6.444142e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.209095e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.758049e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.551284e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.155560e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.582170e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.582170e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.198222e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.136867e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.136867e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.021056e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.203103e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.349286e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.349217e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.146441e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.146441e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.913863e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.416510e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.505800e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.231823e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.605281e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.605281e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.107389e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.107389e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.107389e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.405775e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  3.692111e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.998462e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.998462e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.998462e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  8.998462e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.136940e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.136940e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.485965e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.485965e-19. 
+
+nIter =
+
+     0
+
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.973997e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  5.295842e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  9.160620e-20. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.284485e-22. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  2.460596e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  4.265300e-19. 
+Warning: Matrix is close to singular or badly scaled. Results
+may be inaccurate. RCOND =  1.279171e-18. 
+
+nIter =
+
+     1
+
+
+nIter =
+
+     2
+
+
+ans =
+
+   5.6717e-09
+
+Solving minimisation problem.
+Convergence condition satsified
+</pre><h2 id="7">Plotting data of solution</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+<span class="comment">% Plotting paths if 2D problem:</span>
+<span class="comment">%==========================================================================</span>
+<span class="keyword">if</span>(numOfPoints == 3)
+    func2 = @(x,y) L.f([x;y],realmax,0,realmax,[0;0]);
+    figure(<span class="string">'name'</span>, <span class="string">'2d path'</span>)
+    hold <span class="string">on</span>
+    fcontour(func2,[0, 1.5,0,1.5], <span class="string">'LevelStep'</span>, 0.01)
+    plot(info.as(1,:), info.as(2,:), <span class="string">'r-o'</span>, <span class="string">'MarkerFaceColor'</span>, <span class="string">'r'</span>)
+    plot(0:0.1:1, 0:0.1:1,<span class="string">'b'</span>) <span class="comment">% sum(alpha_iy_i) = 0</span>
+    hold <span class="string">off</span>
+<span class="keyword">end</span>
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">% Plotting Convergence of a_k:</span>
+<span class="comment">%==========================================================================</span>
+successiveDiff = [diff(info.as(1,:)); diff(info.as(2,:))];
+figure(<span class="string">'name'</span>, <span class="string">'Convergence of alpha'</span>)
+semilogy(vecnorm(successiveDiff, 2, 1))
+xlabel(<span class="string">"Iteration"</span>)
+ylabel(<span class="string">"||\alpha_k - \alpha_k_-_1)||"</span>)
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">% Plotting newt iters:</span>
+<span class="comment">%==========================================================================</span>
+figure(<span class="string">'name'</span>, <span class="string">'newtIters'</span>)
+plot(info.newtIter)
+xlabel(<span class="string">"Iteration"</span>)
+ylabel(<span class="string">"Newton method iterations"</span>)
+<span class="comment">%==========================================================================</span>
+
+
+<span class="comment">% Plotting Parameters:</span>
+<span class="comment">%==========================================================================</span>
+figure(<span class="string">'name'</span>, <span class="string">'lambda_I'</span>)
+plot(vecnorm(info.lambda_I,2,1))
+ylabel(<span class="string">"||\lambda^I||"</span>)
+xlabel(<span class="string">"Iteration"</span>)
+
+figure(<span class="string">'name'</span>, <span class="string">'mu_I'</span>)
+semilogy(info.mu_I)
+ylabel(<span class="string">"||\mu^I||"</span>)
+xlabel(<span class="string">"Iteration"</span>)
+
+figure(<span class="string">'name'</span>, <span class="string">'mu_e'</span>)
+semilogy(info.mu_e)
+ylabel(<span class="string">"||\mu^e||"</span>)
+xlabel(<span class="string">"Iteration"</span>)
+
+figure(<span class="string">'name'</span>, <span class="string">'lambda_e'</span>)
+hold <span class="string">on</span>
+plot(info.lambda_e)
+plot(vecnorm(info.lambda_I,2,1))
+ylim([0,140])
+legend(<span class="string">"||\lambda^e||"</span>, <span class="string">"||\lambda^I||"</span>)
+xlabel(<span class="string">"Iteration"</span>)
+<span class="comment">%==========================================================================</span>
+disp(<span class="string">"Plotting results"</span>)
+
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Plotting results
+</pre><img vspace="5" hspace="5" src="Project_03.png" alt=""> <img vspace="5" hspace="5" src="Project_04.png" alt=""> <img vspace="5" hspace="5" src="Project_05.png" alt=""> <img vspace="5" hspace="5" src="Project_06.png" alt=""> <img vspace="5" hspace="5" src="Project_07.png" alt=""> <h2 id="8">Calculating Equation of Plane</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+<span class="comment">% Calculate w = sum(alpha_i * y_i * x_i)</span>
+<span class="comment">%==========================================================================</span>
+w = calcW(a_k, dataset);
+disp(<span class="string">"Calculating w"</span>)
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">% Determine Support Vectors</span>
+<span class="comment">%==========================================================================</span>
+<span class="comment">% Indicies for a_i &gt; 0</span>
+supportVecs = [];
+sVecsI = [];
+<span class="keyword">for</span> i = 1:length(a_k)
+    <span class="keyword">if</span>(a_k(i) &gt; 0.01)
+        <span class="comment">% use i as supportVec</span>
+        supportVecs = [supportVecs; dataset(i,:), a_k(i)];
+        sVecsI = [sVecsI; i];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+disp(<span class="string">"Calculating Support Vectors"</span>)
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">% Calculating b</span>
+<span class="comment">%==========================================================================</span>
+b = calcb(supportVecs);
+disp(<span class="string">"calculating b"</span>)
+<span class="comment">%==========================================================================</span>
+
+<span class="comment">%--------------------------------------------------------------------------</span>
+</pre><pre class="codeoutput">Calculating w
+Calculating Support Vectors
+calculating b
+</pre><h2 id="9">Plotting SVM plane</h2><pre class="codeinput"><span class="comment">%--------------------------------------------------------------------------</span>
+
+func = @(x,y) (-b - w(1)*x - w(2)*y)/w(3);
+[X,Y] = meshgrid(-4:0.1:4, -4:0.1:4);
+Z = func(X,Y);
+
+figure(<span class="string">'name'</span>, <span class="string">'SVM Mapping'</span>)
+hold <span class="string">on</span>
+scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), <span class="string">'o'</span>);
+surf(X,Y,Z)
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), <span class="string">'*'</span>);
+scatter3(dataset(sVecsI, 1), dataset(sVecsI, 2), dataset(sVecsI,3), <span class="string">'k'</span>, <span class="string">'*'</span>);
+xlabel(<span class="string">'x'</span>)
+ylabel(<span class="string">'y'</span>)
+zlabel(<span class="string">'z'</span>)
+legend(<span class="string">"y_i = 1"</span>, <span class="string">"SVM"</span>, <span class="string">"y_i = -1"</span>)
+hold <span class="string">off</span>
+
+disp(<span class="string">"Plotting SVM plane"</span>)
+</pre><pre class="codeoutput">Plotting SVM plane
+</pre><img vspace="5" hspace="5" src="Project_08.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Numerical Optimisation Project 
+% Name: Dylan Scotney 
+% SN: 18138211
+% Submission date: 09/04/2019
+
+% clear cache and variables 
+clear cache variables
+addpath Lib
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Simulating dataset 
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+numOfPoints = 200; % code will round down if not even
+theta = linspace(0, 2*pi, numOfPoints/2);
+% 4th column = 0 will later be used to store mapped values from kernels
+scatter_circle = @(r, noise, class) [r * cos(theta) + noise(1,:);
+                                     r * sin(theta) + noise(2,:);
+                                     0*theta;
+                                     class*ones(1,length(theta))];
+
+% Generate random sets with norm distribution, acts as noise on sample
+data_generator = rng(0,'v5normal');
+noise1 = rand(2,length(theta));
+noise2 = rand(2,length(theta));
+
+dataset_p = scatter_circle(1, noise1, 1)';
+dataset_m = scatter_circle(3, noise2, -1)';
+dataset = [dataset_p; dataset_m];
+
+% Plot data
+figure('name', 'Non-Linearly Seperable Data')
+hold on
+scatter(dataset_p(:,1), dataset_p(:,2), 'o')
+scatter(dataset_m(:,1), dataset_m(:,2), '*')
+title("2D data set")
+legend("y_i = 1", "y_i = -1")
+grid off
+hold off
+
+disp("Simulated data set.")
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Seperating dataset with kernel 
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% Radial Basis Kernel:
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+dataset = radialBasisKernel(dataset);
+
+% Polynomial Kernel:
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+%dataset = polynomialKernel(dataset);
+
+
+% Plot Seperated Data
+%==========================================================================
+split = numOfPoints/2;
+
+figure('name', 'Radial Basis Kernel Mapping')
+scatter3(dataset(1:split, 1), dataset(1:split, 2),...
+         dataset(1:split,3), 'o');
+hold on
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), ...
+         dataset(split+1:end,3), '*');
+title("Radial Basis Kernel Mapping")
+legend("y_i = 1", "y_i = -1")
+hold off
+%==========================================================================
+disp("Seperated data with radial basis kernel.")
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Calculating Hessian of Radial Basis Kernel
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+% Computing matrix H
+H = zeros(numOfPoints,numOfPoints);
+for i = 1:numOfPoints
+    for j = 1:numOfPoints
+        H(i,j) = dataset(i,4)*dataset(j,4)*dot(dataset(i,1:3), dataset(j,1:3));
+    end
+end
+disp("Calculated Hessian.")
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Formulating minimisation problem
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+group = dataset(:, 4); %classification of each point
+
+% Define function handles for augLag and diffAugLag:
+%==========================================================================
+f = @(a) F(a, H);
+c_e = @(a) C_e(a, group);
+psi = @(a, mu_I, lambda_I) Psi(a, mu_I, lambda_I);
+
+df = @(a) dF(a, H);
+dc_e = dC_e(group);
+dpsi = @ (a, mu_I, lambda_I) dPsi(a, mu_I, lambda_I);
+
+d2f = d2F(H);
+d2c_e = @(mu_e) 1/mu_e * d2C_e(group);
+d2psi = @(a, mu_I, lambda_I) d2Psi(a, mu_I,  lambda_I);
+
+%==========================================================================
+
+
+% Defining Lagrangian (see report) <add more info here>
+%==========================================================================
+L.f = @(a, mu_e, lambda_e, mu_I, lambda_I) augLagrangian(f, c_e, psi, a,...
+                                                       mu_e, lambda_e, ...
+                                                       mu_I,lambda_I);
+
+L.df = @(a, mu_e, lambda_e, mu_I, lambda_I) diffAugLagrangian(df, dc_e, c_e,...
+                                                            dpsi, a, mu_e,...
+                                                            lambda_e, mu_I,...
+                                                            lambda_I);  
+                                                        
+L.d2f = @(a, mu_e, mu_I, lambda_I) d2AugLagrangian(d2f, d2c_e, d2psi, a, mu_e,...
+                                             mu_I, lambda_I);
+%==========================================================================
+
+disp("Formulated minimisation problem.")
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Solving Minimisation Problem
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% Initialisation:
+%==========================================================================
+% Starting point
+a0 = zeros(length(H), 1);
+
+% Parameters
+mu_e0 = 1;
+lambda_e0 = 1;
+mu_I0 = 1;
+lambda_I0 = ones(length(H), 1);
+tol = 1e-8;
+alpha0 = 1;
+maxIter = 500;
+storeInfo = true;
+dataGroups = dataset(:,4);
+%==========================================================================
+
+% Solving using Framework 17.3 from Nocedal and Wright:
+%=========================================================================
+[a_k, f_max, nIter, info] = augLagFramework(L, a0, dataGroups, mu_e0,...
+                                            lambda_e0, mu_I0, lambda_I0,...
+                                            tol, maxIter, storeInfo);
+a_k;
+norm(info.diff(:,end))
+%==========================================================================
+disp("Solving minimisation problem.")  
+disp(info.stopCond)
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Plotting data of solution
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% Plotting paths if 2D problem: 
+%==========================================================================
+if(numOfPoints == 3)
+    func2 = @(x,y) L.f([x;y],realmax,0,realmax,[0;0]);
+    figure('name', '2d path')
+    hold on 
+    fcontour(func2,[0, 1.5,0,1.5], 'LevelStep', 0.01)
+    plot(info.as(1,:), info.as(2,:), 'r-o', 'MarkerFaceColor', 'r')
+    plot(0:0.1:1, 0:0.1:1,'b') % sum(alpha_iy_i) = 0
+    hold off
+end
+%==========================================================================
+
+% Plotting Convergence of a_k:
+%==========================================================================
+successiveDiff = [diff(info.as(1,:)); diff(info.as(2,:))];
+figure('name', 'Convergence of alpha')
+semilogy(vecnorm(successiveDiff, 2, 1))
+xlabel("Iteration")
+ylabel("||\alpha_k - \alpha_k_-_1)||")
+%==========================================================================
+
+% Plotting newt iters:
+%==========================================================================
+figure('name', 'newtIters')
+plot(info.newtIter)
+xlabel("Iteration")
+ylabel("Newton method iterations")
+%==========================================================================
+
+
+% Plotting Parameters:
+%==========================================================================
+figure('name', 'lambda_I')
+plot(vecnorm(info.lambda_I,2,1))
+ylabel("||\lambda^I||")
+xlabel("Iteration")
+
+figure('name', 'mu_I')
+semilogy(info.mu_I)
+ylabel("||\mu^I||")
+xlabel("Iteration")
+
+figure('name', 'mu_e')
+semilogy(info.mu_e)
+ylabel("||\mu^e||")
+xlabel("Iteration")
+
+figure('name', 'lambda_e')
+hold on
+plot(info.lambda_e)
+plot(vecnorm(info.lambda_I,2,1))
+ylim([0,140])
+legend("||\lambda^e||", "||\lambda^I||")
+xlabel("Iteration")
+%==========================================================================
+disp("Plotting results")
+
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Calculating Equation of Plane
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+% Calculate w = sum(alpha_i * y_i * x_i)
+%==========================================================================
+w = calcW(a_k, dataset);
+disp("Calculating w")
+%==========================================================================
+
+% Determine Support Vectors
+%==========================================================================
+% Indicies for a_i > 0
+supportVecs = [];
+sVecsI = [];
+for i = 1:length(a_k)
+    if(a_k(i) > 0.01)
+        % use i as supportVec
+        supportVecs = [supportVecs; dataset(i,:), a_k(i)];   
+        sVecsI = [sVecsI; i];
+    end
+end
+disp("Calculating Support Vectors")
+%==========================================================================
+
+% Calculating b
+%==========================================================================
+b = calcb(supportVecs);
+disp("calculating b")
+%==========================================================================
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+%% Plotting SVM plane
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+func = @(x,y) (-b - w(1)*x - w(2)*y)/w(3);
+[X,Y] = meshgrid(-4:0.1:4, -4:0.1:4);
+Z = func(X,Y);
+
+figure('name', 'SVM Mapping')
+hold on
+scatter3(dataset(1:split, 1), dataset(1:split, 2), dataset(1:split,3), 'o');
+surf(X,Y,Z)
+scatter3(dataset(split+1:end, 1), dataset(split+1:end, 2), dataset(split+1:end,3), '*');
+scatter3(dataset(sVecsI, 1), dataset(sVecsI, 2), dataset(sVecsI,3), 'k', '*');
+xlabel('x')
+ylabel('y')
+zlabel('z')
+legend("y_i = 1", "SVM", "y_i = -1")
+hold off
+
+disp("Plotting SVM plane")
+
+%% 
+
+
+##### SOURCE END #####
+--></body></html>
